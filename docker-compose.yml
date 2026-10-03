@@ -1,0 +1,47 @@
+x-app: &app-base
+  build: ./app
+  restart: unless-stopped
+  volumes:
+    - mensagens:/data
+  networks:
+    - rede-mensagens
+
+services:
+  app1:
+    <<: *app-base
+    container_name: app1
+    hostname: app1
+    environment:
+      INSTANCE_NAME: app1
+      PEERS: app2:5000,app3:5000
+    ports:
+      - "5001:5000"
+
+  app2:
+    <<: *app-base
+    container_name: app2
+    hostname: app2
+    environment:
+      INSTANCE_NAME: app2
+      PEERS: app1:5000,app3:5000
+    ports:
+      - "5002:5000"
+
+  app3:
+    <<: *app-base
+    container_name: app3
+    hostname: app3
+    environment:
+      INSTANCE_NAME: app3
+      PEERS: app1:5000,app2:5000
+    ports:
+      - "5003:5000"
+
+volumes:
+  mensagens:
+    name: mensagens-compartilhadas
+
+networks:
+  rede-mensagens:
+    name: rede-mensagens
+    driver: bridge

@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.pytest_cache/
+
+# Logs e dados locais (as mensagens ficam no volume Docker, não no repositório)
+*.log
+data/
+
+# Variáveis de ambiente locais
+.env
+
+# Editores e sistema operacional
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Claude Code
+.claude/
