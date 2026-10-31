@@ -1,0 +1,70 @@
+# Versão do sistema para Docker Swarm (docker stack deploy).
+# O Swarm não faz build: a imagem precisa ser gerada antes com
+#   docker build -t mensageria-app:1.0 ./app
+
+x-app: &app-base
+  image: mensageria-app:1.0
+  volumes:
+    - mensagens:/data
+  networks:
+    - rede-mensagens
+
+# Bloco comum de deploy (cada serviço acrescenta o "placement")
+x-deploy: &deploy-base
+  replicas: 1
+  restart_policy:
+    condition: on-failure
+    delay: 5s
+    max_attempts: 3
+
+services:
+  app1:
+    <<: *app-base
+    hostname: app1
+    environment:
+      INSTANCE_NAME: app1
+      PEERS: app2:5000,app3:5000
+    ports:
+      - "5001:5000"
+    deploy:
+      <<: *deploy-base
+      placement:
+        constraints:
+          - node.role == manager   # PC 1 (o volume é local de cada máquina)
+
+  app2:
+    <<: *app-base
+    hostname: app2
+    environment:
+      INSTANCE_NAME: app2
+      PEERS: app1:5000,app3:5000
+    ports:
+      - "5002:5000"
+    deploy:
+      <<: *deploy-base
+      placement:
+        constraints:
+          - node.role == worker   # PC 2 (o volume é local de cada máquina)
+
+  app3:
+    <<: *app-base
+    hostname: app3
+    environment:
+      INSTANCE_NAME: app3
+      PEERS: app1:5000,app2:5000
+    ports:
+      - "5003:5000"
+    deploy:
+      <<: *deploy-base
+      placement:
+        constraints:
+          - node.role == worker   # PC 2 (o volume é local de cada máquina)
+
+volumes:
+  mensagens:
+    name: mensagens-compartilhadas
+
+networks:
+  rede-mensagens:
+    driver: overlay
+    attachable: true
